@@ -1,0 +1,20 @@
+- name: Update and upgrade apt packages
+  become: true
+  apt:
+    update_cache: yes
+    upgrade: 'yes'
+  tags: update
+
+- name: Install sense-hat
+  become: true
+  apt: 
+    name: sense-hat
+    state: present
+  tags: sense_hat
+
+- name: Install Git
+  become: true
+  apt:
+    name: git
+    state: present
+  tags: install_git

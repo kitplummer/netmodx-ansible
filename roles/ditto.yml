@@ -1,0 +1,105 @@
+- name: Install required packages
+  become: true
+  apt:
+    name:
+      - libdbus-1-dev
+      - libglib2.0-dev
+      - libudev-dev
+      - libical-dev
+      - libreadline-dev
+      - docutils-common
+    state: present
+  tags: ditto_install
+
+- name: Download and install BlueZ
+  block:
+    - name: Download BlueZ
+      get_url:
+        url: http://www.kernel.org/pub/linux/bluetooth/bluez-5.66.tar.xz
+        dest: /tmp/bluez-5.66.tar.xz
+
+    - name: Extract BlueZ
+      unarchive:
+        src: /tmp/bluez-5.66.tar.xz
+        dest: /tmp/
+        remote_src: yes
+
+    - name: Install BlueZ
+      become: true
+      command:
+        cmd: "{{ item }}"
+        chdir: /tmp/bluez-5.66
+      loop:
+        - ./configure
+        - make
+        - make install
+  tags: ditto_bluez
+
+- name: Modify bluetooth service file
+  become: true
+  lineinfile:
+    path: /usr/lib/systemd/system/bluetooth.service
+    regexp: '^ExecStart='
+      # line: 'ExecStart=/usr/lib/bluetooth/bluetoothd -P battery'
+    line: 'ExecStart=/usr/sbin/bluetoothd -P battery'
+  tags: ditto_bluez
+
+- name: Reload and restart bluetooth service
+  become: true
+  systemd:
+    daemon_reload: yes
+    name: bluetooth
+    state: restarted
+  tags: ditto_bluez
+
+- name: Set bluetooth configuration
+  become: true
+  command:
+    cmd: "{{ item }}"
+  loop:
+    - hciconfig hci0 down
+    - btmgmt bredr off
+    - hciconfig hci0 up
+  tags: ditto_bluez
+
+- name: Get path to hcitool
+  command: which hcitool
+  register: hcitool_path
+  changed_when: false
+  tags: ditto_install
+
+- name: Set BlueZ support for multiple advertisements
+  become: true
+  shell: "setcap 'cap_net_raw,cap_net_admin+eip' {{ hcitool_path.stdout }}"
+  tags: ditto_bluez
+
+- name: Install NVM and Node.js
+  shell: |
+    wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm install 18.13
+    npm install -g typescript@^3.1.6
+  args:
+    executable: /bin/bash
+  tags: ditto_install
+
+- name: Clone Ditto samples repo
+  git:
+    repo: 'https://github.com/getditto/samples.git'
+    dest: "{{ ansible_env.HOME }}/ditto_demo"
+  tags: ditto_demo
+
+- name: Replace Ditto configuration in index.ts
+  lineinfile:
+    path: "{{ ansible_env.HOME }}/ditto_demo/tasks/nodejs/index.ts"
+    regexp: "ditto = new Ditto\\({ type: 'onlinePlayground', appID: '(.*)', token: '(.*)' }\\)"
+    line: "ditto = new Ditto({ type: 'onlinePlayground', appID: '{{ DITTO_APP_ID }}', token: '{{ DITTO_TOKEN }}' })"
+
+  tags: ditto_demo
+- name: Install and build the demo app
+  shell: |
+    cd {{ ansible_env.HOME }}/ditto_demo/tasks/nodejs/
+    npm install
+    npm run build
+  tags: ditto_demo

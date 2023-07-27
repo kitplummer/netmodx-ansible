@@ -1,0 +1,7 @@
+- name: Configure Pis
+  hosts: rpis
+  vars_files:
+    - creds.yml
+  tasks:
+    - include: roles/core.yml
+    - include: roles/ditto.yml
