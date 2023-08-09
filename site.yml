@@ -1,7 +1,8 @@
-- name: Configure Pis
-  hosts: rpis
+- name: Configure NetmodX Env
+  hosts: pi1
   vars_files:
     - creds.yml
   tasks:
-    - include: roles/core.yml
-    - include: roles/ditto.yml
+    - import_tasks: roles/core.yml
+    - import_tasks: roles/ditto.yml
+    - import_tasks: roles/dev.yml

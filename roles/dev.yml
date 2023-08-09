@@ -1,0 +1,80 @@
+# Setup development environment
+- name: Install dev packages
+  become: true
+  apt:
+    name:
+      - exa
+    state: present
+  tags: dev
+
+- name: Get architecture # uname -a can be misleading (report hw arch not sw arch)
+  command: dpkg --print-architecture
+  register: architecture
+  tags: dev
+  changed_when: false
+
+- name: Check if architecture is ARM 32-bit
+  set_fact:
+    is_arm: "{{ 'arm' in architecture.stdout }}"
+    is_32bit: "{{ 'armhf' in architecture.stdout or 'armel' in architecture.stdout }}"
+  tags: dev
+
+- name: Debug
+  debug:
+    msg: "Architecture: {{ architecture.stdout }}, ARM: {{ is_arm }}, 32-bit: {{ is_32bit }}"
+
+
+# Accept the old neovim since we are on ARM32 and newer isnt supported
+- name: Install neovim from apt
+  when: is_arm
+  become: true
+  apt:
+    name: neovim
+    state: present
+  tags: dev
+
+- name: Install the latest neovim
+  tags: dev
+  when: not is_arm
+  block:
+    - name: Download neovim tarball
+      become: true
+      get_url:
+        url: "https://github.com/neovim/neovim/releases/download/stable/nvim-linux64.tar.gz"
+        dest: "/usr/local/src/nvim-linux64.tar.gz"
+        mode: '0755'
+
+    - name: Extract neovim tarball
+      become: true
+      unarchive:
+        src: "/usr/local/src/nvim-linux64.tar.gz"
+        dest: "/usr/local/src/"
+        remote_src: yes
+
+    - name: Expose binary globally (create symlink)
+      become: true
+      file:
+        src: "/usr/local/src/nvim-linux64/bin/nvim"
+        dest: "/usr/local/bin/nvim"
+        state: link
+
+- name: Setup neovim
+  tags: dev
+  when: not is_arm
+  block:
+    - name: Check if Nvim config already exists
+      stat:
+        path: "{{ ansible_env.HOME }}/.config/nvim/init.lua"
+      register: nvim_config_stat
+
+    - name: Remove existing .config/nvim/ since no init.lua
+      file:
+        path: "{{ ansible_env.HOME }}/.config/nvim/"
+        state: absent
+      when: not nvim_config_stat.stat.exist
+
+    - name: Clone a basic Nvim config
+      git:
+        repo: 'https://github.com/nvim-lua/kickstart.nvim'
+        dest: "{{ ansible_env.HOME }}/.config/nvim/"
+      when: not nvim_config_stat.stat.exist
