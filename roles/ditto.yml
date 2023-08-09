@@ -16,19 +16,19 @@
     - name: Download BlueZ
       get_url:
         url: http://www.kernel.org/pub/linux/bluetooth/bluez-5.66.tar.xz
-        dest: /tmp/bluez-5.66.tar.xz
+        dest: '{{ ansible_env.HOME }}/bluez-5.66.tar.xz'
 
     - name: Extract BlueZ
       unarchive:
-        src: /tmp/bluez-5.66.tar.xz
-        dest: /tmp/
+        src: '{{ ansible_env.HOME }}/bluez-5.66.tar.xz'
+        dest: '{{ ansible_env.HOME }}'
         remote_src: yes
 
     - name: Install BlueZ
       become: true
       command:
         cmd: "{{ item }}"
-        chdir: /tmp/bluez-5.66
+        chdir: '{{ ansible_env.HOME }}/bluez-5.66'
       loop:
         - ./configure
         - make
@@ -66,7 +66,7 @@
   command: which hcitool
   register: hcitool_path
   changed_when: false
-  tags: ditto_install
+  tags: ditto_bluez
 
 - name: Set BlueZ support for multiple advertisements
   become: true
@@ -84,11 +84,16 @@
     executable: /bin/bash
   tags: ditto_install
 
-- name: Clone Ditto samples repo
+- name: Check if Ditto samples repo already exists
+  stat:
+    path: "{{ ansible_env.HOME }}/ditto_demo"
+  register: ditto_repo_stat
+
+- name: Clone Ditto samples repo if it doesn't exist
   git:
     repo: 'https://github.com/getditto/samples.git'
     dest: "{{ ansible_env.HOME }}/ditto_demo"
-  tags: ditto_demo
+  when: not ditto_repo_stat.stat.exists
 
 - name: Replace Ditto configuration in index.ts
   lineinfile:
@@ -99,6 +104,8 @@
   tags: ditto_demo
 - name: Install and build the demo app
   shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
     cd {{ ansible_env.HOME }}/ditto_demo/tasks/nodejs/
     npm install
     npm run build
