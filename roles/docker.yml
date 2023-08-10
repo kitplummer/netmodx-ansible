@@ -1,0 +1,43 @@
+- name: Check if Docker is installed
+  command: docker --version
+  register: docker_version
+  failed_when: false
+  changed_when: false
+  tags: docker
+
+- name: Download Docker installation script
+  get_url:
+    url: https://get.docker.com
+    dest: /tmp/get-docker.sh
+    mode: '0755'
+  when: docker_version.rc != 0
+  tags: docker
+
+- name: Install Docker
+  command:
+    cmd: /tmp/get-docker.sh
+    creates: /usr/bin/docker
+  when: docker_version.rc != 0
+  tags: docker
+
+- name: Check if user is in docker group
+  shell: groups {{ ansible_user }} | grep -q '\bdocker\b'
+  register: user_in_docker_group
+  failed_when: false
+  changed_when: false
+  tags: docker
+
+- name: Add user to docker group
+  become: true
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
+  when: user_in_docker_group.rc != 0
+  tags: docker
+
+- name: Test Docker installation
+  command: docker run hello-world
+  changed_when: false
+  tags: docker
+

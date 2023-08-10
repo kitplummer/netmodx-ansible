@@ -6,3 +6,4 @@
     - import_tasks: roles/core.yml
     - import_tasks: roles/ditto.yml
     - import_tasks: roles/dev.yml
+    - import_tasks: roles/docker.yml
