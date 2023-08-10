@@ -4,6 +4,12 @@
     - creds.yml
   tasks:
     - import_tasks: roles/core.yml
+      tags: core
     - import_tasks: roles/ditto.yml
+      tags: ditto
     - import_tasks: roles/dev.yml
+      tags: dev
     - import_tasks: roles/docker.yml
+      tags: docker
+    - import_tasks: roles/sensehat-node-ipc.yml
+      tags: sni
