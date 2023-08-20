@@ -1,5 +1,21 @@
-- name: Configure NetModX Env
-  hosts: pi1
+---
+- name: Configure NetModX rPis Env
+  hosts: rpis
+  vars_files:
+      - creds.yml
+  tasks:
+    - import_tasks: roles/core.yml
+      tags: core
+    - import_tasks: roles/dev.yml
+      tags: dev
+    - import_tasks: roles/docker.yml
+      tags: docker
+    - import_tasks: roles/ditto.yml
+      tags: ditto
+    #    - import_tasks: roles/sensehat-node-ipc.yml
+    #  tags: sni
+- name: Configure FOB
+  hosts: fob
   vars_files:
     - creds.yml
   tasks:
@@ -11,5 +27,3 @@
       tags: docker
     - import_tasks: roles/ditto.yml
       tags: ditto
-    - import_tasks: roles/sensehat-node-ipc.yml
-      tags: sni
