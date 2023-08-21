@@ -44,7 +44,7 @@
     path: /usr/lib/systemd/system/bluetooth.service
     regexp: '^ExecStart='
       # line: 'ExecStart=/usr/lib/bluetooth/bluetoothd -P battery'
-    line: 'ExecStart=/usr/sbin/bluetoothd -P battery'
+    line: 'ExecStart=/usr/local/libexec/bluetooth/bluetoothd --noplugin=sap -P battery'
   when: bluez.changed
   tags: ditto_bluez
 
