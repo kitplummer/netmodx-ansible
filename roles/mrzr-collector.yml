@@ -20,6 +20,14 @@
     dest: "{{ ansible_user_dir }}/ditto-to-redpanda/.env"
     mode: '0600'
 
+- name: Install pm2 
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/ditto-to-redpanda
+    npm install -g pm2 
+  tags: collector-install
+
 - name: Run tsc compile
   shell: |
     export NVM_DIR="{{ ansible_user_dir }}/.nvm"

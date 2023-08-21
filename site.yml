@@ -12,8 +12,8 @@
       tags: docker
     - import_tasks: roles/ditto.yml
       tags: ditto
-    #    - import_tasks: roles/sensehat-node-ipc.yml
-    #  tags: sni
+    - import_tasks: roles/logjammer.yml
+      tags: logjammer
 - name: Configure FOB
   hosts: fob
   vars_files:
@@ -39,9 +39,9 @@
     USE_BLUETOOTH: true
     USE_LAN: true
     RAW_QUERY_KEY: synced
-    RAW_QUERY_VALUE: false
+    RAW_QUERY_VALUE: "false"
     PRODUCT_QUERY_KEY: synced
-    PRODUCT_QUERY_VALUE: false
+    PRODUCT_QUERY_VALUE: "false"
   tasks:
     - import_tasks: roles/core.yml
       tags: core

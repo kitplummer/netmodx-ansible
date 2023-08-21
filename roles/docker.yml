@@ -35,8 +35,3 @@
   command: docker run hello-world
   changed_when: false
 
-- name: Install bottle python package
-  ansible.builtin.pip:
-    name: 
-      - docker
-      - docker-compose
