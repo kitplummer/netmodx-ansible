@@ -35,17 +35,13 @@
         - ./configure
         - make
         - make install
+    - name: Modify bluetooth service file
+      become: true
+      lineinfile:
+        path: /usr/lib/systemd/system/bluetooth.service
+        regexp: '^ExecStart='
+        line: 'ExecStart=/usr/local/libexec/bluetooth/bluetoothd --noplugin=sap -P battery'
       register: bluez
-  tags: ditto_bluez
-
-- name: Modify bluetooth service file
-  become: true
-  lineinfile:
-    path: /usr/lib/systemd/system/bluetooth.service
-    regexp: '^ExecStart='
-      # line: 'ExecStart=/usr/lib/bluetooth/bluetoothd -P battery'
-    line: 'ExecStart=/usr/local/libexec/bluetooth/bluetoothd --noplugin=sap -P battery'
-  when: bluez.changed
   tags: ditto_bluez
 
 - name: Reload and restart bluetooth service
