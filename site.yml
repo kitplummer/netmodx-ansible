@@ -16,8 +16,20 @@
       tags: logjammer
 - name: Configure FOB
   hosts: fob
+  environment:
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+    PATH: "{{ ansible_env.HOME}}/.nvm/versions/node/v20.5.1/bin:{{ ansible_env.PATH }}"
   vars_files:
     - creds.yml
+  vars:
+    BROKER_HOST: localhost
+    BROKER_PORT: 9092
+    USE_BLUETOOTH: false
+    USE_LAN: true
+    RAW_QUERY_KEY: synced
+    RAW_QUERY_VALUE: "true"
+    PRODUCT_QUERY_KEY: synced
+    PRODUCT_QUERY_VALUE: "true"
   tasks:
     - import_tasks: roles/core.yml
       tags: core
@@ -29,10 +41,15 @@
       tags: redpanda
     - import_tasks: roles/ditto.yml
       tags: ditto
+    - import_tasks: roles/collector.yml
+      tags: collector
 - name: Configure MRZR laptop
   hosts: mrzr
   vars_files:
     - creds.yml
+  environment:
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+    PATH: "{{ ansible_env.HOME}}/.nvm/versions/node/v20.5.1/bin:{{ ansible_env.PATH }}"
   vars:
     BROKER_HOST: localhost
     BROKER_PORT: 9092
@@ -51,7 +68,7 @@
       tags: docker
     - import_tasks: roles/redpanda.yml
       tags: redpanda
-    - import_tasks: roles/mrzr-collector.yml
+    - import_tasks: roles/collector.yml
       tags: collector
     - import_tasks: roles/ditto.yml
       tags: ditto
