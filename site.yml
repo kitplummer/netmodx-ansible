@@ -22,14 +22,11 @@
   vars_files:
     - creds.yml
   vars:
+    role: "base"
     BROKER_HOST: localhost
     BROKER_PORT: 9092
     USE_BLUETOOTH: false
     USE_LAN: true
-    RAW_QUERY_KEY: synced
-    RAW_QUERY_VALUE: "true"
-    PRODUCT_QUERY_KEY: synced
-    PRODUCT_QUERY_VALUE: "true"
   tasks:
     - import_tasks: roles/core.yml
       tags: core
@@ -51,14 +48,11 @@
     NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
     PATH: "{{ ansible_env.HOME}}/.nvm/versions/node/v20.5.1/bin:{{ ansible_env.PATH }}"
   vars:
+    role: "collector"
     BROKER_HOST: localhost
     BROKER_PORT: 9092
     USE_BLUETOOTH: true
     USE_LAN: true
-    RAW_QUERY_KEY: synced
-    RAW_QUERY_VALUE: "false"
-    PRODUCT_QUERY_KEY: synced
-    PRODUCT_QUERY_VALUE: "false"
   tasks:
     - import_tasks: roles/core.yml
       tags: core

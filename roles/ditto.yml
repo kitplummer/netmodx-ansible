@@ -35,12 +35,24 @@
         - ./configure
         - make
         - make install
+    - name: Modify bluetooth service file ConfigurationDirectoryMode
+      become: true
+      lineinfile:
+        path: /usr/lib/systemd/system/bluetooth.service
+        regexp: '^ConfigurationDirectoryMode='
+        line: 'ConfigurationDirectoryMode=0755'
+    - name: Fix Controller line in /etc/bluetooth/main.conf
+      become: true
+      ansible.builtin.lineinfile:
+        path: /etc/bluetooth/main.conf
+        regexp: '^[Controller]'
+        line: '#[Controller]'
     - name: Modify bluetooth service file
       become: true
       lineinfile:
         path: /usr/lib/systemd/system/bluetooth.service
         regexp: '^ExecStart='
-        line: 'ExecStart=/usr/local/libexec/bluetooth/bluetoothd --noplugin=sap -P battery'
+        line: 'ExecStart=/usr/local/libexec/bluetooth/bluetoothd --noplugin=sap -P battery --experimental'
       register: bluez
   tags: ditto_bluez
 
@@ -60,6 +72,7 @@
   loop:
     - hciconfig hci0 down
     - btmgmt bredr off
+    - btmgmt le on
     - hciconfig hci0 up
   when: bluez.changed
   tags: ditto_bluez
