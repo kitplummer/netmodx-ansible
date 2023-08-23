@@ -13,6 +13,8 @@
     - name: "githubpassword" 
       prompt: "Enter your github password" 
       private: yes
+  vars:
+    role: receiver
   tasks:
     - import_tasks: roles/core.yml
       tags: core
@@ -22,11 +24,11 @@
       tags: docker
     - import_tasks: roles/ditto.yml
       tags: ditto
-    - import_tasks: roles/sensor-app.yml
-      tags: sensor
-    - import_tasks: roles/logjammer.yml
-      tags: logjammer
-- name: Configure NetModX Leader Env
+    #    - import_tasks: roles/sensor-app.yml
+      #  tags: sensor
+    - import_tasks: roles/model.yml
+      tags: model_receiver
+- name: Configure NetModX Comm Node Env
   hosts: leader
   environment:
     NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
@@ -41,6 +43,7 @@
     - import_tasks: roles/docker.yml
       tags: docker
     - import_tasks: roles/ditto.yml
+      tags: ditto
 - name: Configure FOB
   hosts: fob
   environment:
