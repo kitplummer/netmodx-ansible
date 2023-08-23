@@ -1,0 +1,50 @@
+- name: Clone model-to-pi repository
+  git:
+    repo: https://github.com/getditto-shared/model-to-pi
+    dest: "{{ ansible_user_dir }}/model_receiver"
+    clone: yes
+    update: yes
+  tags: model_receiver
+
+- name: Run npm ci
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/model_receiver
+    nvm use v20.5.1
+    npm i -g typescript
+    npm ci --no-progress
+  tags: model_receiver 
+
+- name: Place .env file
+  ansible.builtin.template:
+    src: templates/model_receiver_env.j2
+    dest: "{{ ansible_user_dir }}/model_receiver/.env"
+    mode: '0600'
+  tags: model_receiver
+
+- name: Run tsc compile
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/model_receiver
+    nvm use v20.5.1
+    tsc receiver.ts
+    tsc sender.ts
+  tags: model_receiver
+
+- name: Start Ditto service if not running
+  pm2:
+    name: model_receiver
+    chdir: "{{ ansible_user_dir }}/model_receiver"
+    script: "node {{ role }}.js"
+    state: started
+  tags: model_receiver 
+
+- name: Setup {{ role }} systemd service
+  become: yes
+  shell: |
+    pm2 startup systemd -u saic --hp /home/saic
+  args:
+    creates: /etc/systemd/system/multi-user.target.wants/pm2-saic.service
+  tags: model_receiver
