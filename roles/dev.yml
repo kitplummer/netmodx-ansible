@@ -5,19 +5,16 @@
     name:
       - exa
     state: present
-  tags: dev
 
 - name: Get architecture # uname -a can be misleading (report hw arch not sw arch)
   command: dpkg --print-architecture
   register: architecture
-  tags: dev
   changed_when: false
 
 - name: Check if architecture is ARM 32-bit
   set_fact:
     is_arm: "{{ 'arm' in architecture.stdout }}"
     is_32bit: "{{ 'armhf' in architecture.stdout or 'armel' in architecture.stdout }}"
-  tags: dev
 
 - name: Debug
   debug:
@@ -31,10 +28,8 @@
   apt:
     name: neovim
     state: present
-  tags: dev
 
 - name: Install the latest neovim
-  tags: dev
   when: not is_arm
   block:
     - name: Download neovim tarball
@@ -59,7 +54,6 @@
         state: link
 
 - name: Setup neovim
-  tags: dev
   when: not is_arm
   block:
     - name: Check if Nvim config already exists
@@ -71,10 +65,10 @@
       file:
         path: "{{ ansible_env.HOME }}/.config/nvim/"
         state: absent
-      when: not nvim_config_stat.stat.exist
+      when: not nvim_config_stat.stat.exists
 
     - name: Clone a basic Nvim config
       git:
         repo: 'https://github.com/nvim-lua/kickstart.nvim'
         dest: "{{ ansible_env.HOME }}/.config/nvim/"
-      when: not nvim_config_stat.stat.exist
+      when: not nvim_config_stat.stat.exists

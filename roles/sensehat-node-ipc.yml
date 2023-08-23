@@ -1,0 +1,31 @@
+- name: Clone sensehat-node-ipc repository
+  git:
+    repo: 'https://github.com/Marco-Christiani/sensehat-node-ipc.git'
+    dest: "{{ ansible_user_dir }}/sensehat-node-ipc"
+    clone: yes
+    update: yes
+  tags: sni-install
+
+- name: Run npm ci
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/sensehat-node-ipc
+    npm ci --no-progress
+  tags: sni-install
+
+- name: Run npm run clean-build
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/sensehat-node-ipc
+    npm run clean-build
+  tags: sni-install
+
+- name: Run npm test
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/sensehat-node-ipc
+    npm test
+  tags: sni-test
