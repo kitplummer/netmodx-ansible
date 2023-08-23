@@ -26,6 +26,21 @@
       tags: sensor
     - import_tasks: roles/logjammer.yml
       tags: logjammer
+- name: Configure NetModX Leader Env
+  hosts: leader
+  environment:
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+    PATH: "{{ ansible_env.HOME}}/.nvm/versions/node/v20.5.1/bin:{{ ansible_env.PATH }}"
+  vars_files:
+      - creds.yml
+  tasks:
+    - import_tasks: roles/core.yml
+      tags: core
+    - import_tasks: roles/dev.yml
+      tags: dev
+    - import_tasks: roles/docker.yml
+      tags: docker
+    - import_tasks: roles/ditto.yml
 - name: Configure FOB
   hosts: fob
   environment:

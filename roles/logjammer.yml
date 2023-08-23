@@ -4,6 +4,7 @@
     dest: "{{ ansible_user_dir }}/logjammer"
     clone: yes
     update: yes
+    force: yes
   tags: logjammer
 
 - name: Run npm ci

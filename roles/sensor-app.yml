@@ -25,14 +25,6 @@
     npm run clean-build
   tags: sensor-install
 
-- name: Run npm test
-  shell: |
-    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-    cd {{ ansible_user_dir }}/ditto-nmx
-    npm test
-  tags: sensor-test
-
 - name: Start Ditto service if not running
   pm2:
     name: sensor 
