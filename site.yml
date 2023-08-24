@@ -6,15 +6,10 @@
     PATH: "{{ ansible_env.HOME}}/.nvm/versions/node/v20.5.1/bin:{{ ansible_env.PATH }}"
   vars_files:
       - creds.yml
-  vars_prompt: 
-    - name: "githubuser" 
-      prompt: "Enter your github username" 
-      private: no 
-    - name: "githubpassword" 
-      prompt: "Enter your github password" 
-      private: yes
   vars:
     role: receiver
+    githubuser: "{{ lookup('env', 'GITHUBUSER') }}"
+    githubpassword: "{{ lookup('env', 'GITHUBPASSWORD') }}"
   tasks:
     - import_tasks: roles/core.yml
       tags: core
