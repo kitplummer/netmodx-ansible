@@ -1,0 +1,28 @@
+- name: Install NVM
+  shell: |
+    wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
+  args:
+    creates: "{{ ansible_user_dir }}/.nvm/nvm.sh"
+    executable: /bin/bash
+  tags: ditto_install
+
+- name: Install Node.js
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm install 20.5.1
+    nvm alias default 20.5.1
+  args:
+    executable: /bin/bash
+    creates: /home/pi/.nvm/versions/node/v20.5.1/bin/node
+  tags: ditto_install
+
+- name: Install typescript and pm2
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/ditto_demo
+    npm install -g typescript
+    npm install -g pm2
+  tags: ditto_install
+

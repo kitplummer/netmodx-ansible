@@ -1,0 +1,20 @@
+- name: Get Node.js
+  ansible.builtin.get_url:
+    url: https://unofficial-builds.nodejs.org/download/release/v20.6.1/node-v20.6.1-linux-armv6l.tar.xz
+    dest: /tmp/node-v20.6.1-linux-armv61.tar.xz
+  tags: ditto_install
+
+- name: Extract Node.js
+  become: true
+  ansible.builtin.unarchive:
+    src: /tmp/node-v20.6.1-linux-armv61.tar.xz
+    dest: /usr/local/node
+
+- name: Install typescript and pm2
+  become: true
+  shell: |
+    npm install -g typescript
+    npm install -g pm2
+  args:
+    creates: /usr/local/bin/pm2
+  tags: ditto_install

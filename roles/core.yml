@@ -5,13 +5,6 @@
     upgrade: 'yes'
   tags: update
 
-- name: Install sense-hat
-  become: true
-  apt: 
-    name: sense-hat
-    state: present
-  tags: sense_hat
-
 - name: Install Git
   become: true
   apt:

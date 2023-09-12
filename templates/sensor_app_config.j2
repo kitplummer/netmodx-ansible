@@ -1,0 +1,16 @@
+{
+  "log-level": "{{ lookup('ansible.builtin.env', "LOG_LEVEL") }}",
+  "quartet-name": "{{ lookup('ansible.builtin.env', "QUARTET_NAME") }}",
+  "arduino-serial-port": "{{ lookup('ansible.builtin.env', "ARDUINO_SERIAL_PORT") }}",
+  "env": "DEV",
+  "ditto": {
+    "app-id": "{{ lookup('ansible.builtin.env', "APP_ID") }}",
+    "app-token": "{{ lookup('ansible.builtin.env', "APP_TOKEN") }}",
+    "use-cloud": "{{ lookup('ansible.builtin.env', "USE_CLOUD") }}",
+    "use-lan": "{{ lookup('ansible.builtin.env', "USE_LAN") }}",
+    "use-ble": "{{ lookup('ansible.builtin.env', "USE_BLE") }}",
+    "raw-collection-name": "{{ lookup('ansible.builtin.env', "RAW_COLLECTION_NAME") }}",
+    "product-collection-name": "{{ lookup('ansible.builtin.env', "PRODUCT_COLLECTION_NAME") }}"
+  }
+}
+

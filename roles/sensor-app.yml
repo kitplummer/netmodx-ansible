@@ -37,27 +37,19 @@
     npm run build
   tags: sensor-install
 
-- name: Restart Ditto sensor service
-  pm2:
-    name: sensor 
-    chdir: "{{ ansible_user_dir }}/ditto-nmx"
-    script: "npm run start-sense-node"
-    state: restarted
-  when: sensor_env.changed
-  tags: sensor-install 
-
 - name: Start Ditto service if not running
   pm2:
     name: sensor 
     chdir: "{{ ansible_user_dir }}/ditto-nmx"
-    script: "npm run start-sense-node"
+    script: 'pm2 start --name sensor "npm run start-sense-node -- --listen-for-models true"'
     state: started
   tags: sensor-install 
 
 - name: Setup sensor systemd service
   become: yes
   shell: |
-    pm2 startup sensor -u pi --hp /home/pi
+    pm2 startup 
+    /home/pi/.nvm/versions/node/v20.5.1/bin pm2 startup systemd -u pi --hp /home/pi
     pm2 save
   args:
     creates: /etc/systemd/system/multi-user.target.wants/pm2-pi.service

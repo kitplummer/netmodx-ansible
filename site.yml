@@ -1,4 +1,35 @@
 ---
+- name: Configure Ditto Rust rPis
+  hosts: nmxs
+  tasks:
+    - import_tasks: roles/core.yml
+      tags: core
+    - import_tasks: roles/rust.yml
+      tags: rust
+
+- name: Configure Ditto rPi Zeros
+  hosts: zeros
+  tasks:
+    - import_tasks: roles/core.yml
+      tags: core
+    - import_tasks: roles/node-bin.yml
+      tags: node
+    - import_tasks: roles/ditto.yml
+      tags: ditto 
+
+- name: Configure Ditto NetModX Sensor rPis
+  hosts: sensor
+  environment:
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+    PATH: "{{ ansible_env.HOME }}/.nvm/versions/node/v20.5.1/bin:{{ ansible_env.PATH }}"
+  tasks:
+    - import_tasks: roles/core.yml
+      tags: core
+    - import_tasks: roles/node.yml
+      tags: node
+    - import_tasks: roles/ditto.yml
+      tags: ditto 
+
 - name: Configure NetModX rPis Env
   hosts: rpis
   environment:
@@ -27,8 +58,8 @@
         # enabled: false
     - import_tasks: roles/sensor-app.yml
       tags: sensor
-    - import_tasks: roles/model.yml
-      tags: model_receiver
+    #    - import_tasks: roles/model.yml
+      # tags: model_receiver
 - name: Configure NetModX Comm Node Env
   hosts: leader
   environment:

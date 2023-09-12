@@ -1,0 +1,134 @@
+# Setup Rust development environment
+
+- name: Install the latest neovim
+  block:
+    - name: Download neovim tarball
+      become: true
+      get_url:
+        url: "https://github.com/neovim/neovim/releases/download/stable/nvim-linux64.tar.gz"
+        dest: "/usr/local/src/nvim-linux64.tar.gz"
+        mode: '0755'
+
+    - name: Extract neovim tarball
+      become: true
+      unarchive:
+        src: "/usr/local/src/nvim-linux64.tar.gz"
+        dest: "/usr/local/src/"
+        remote_src: yes
+
+    - name: Expose binary globally (create symlink)
+      become: true
+      file:
+        src: "/usr/local/src/nvim-linux64/bin/nvim"
+        dest: "/usr/local/bin/nvim"
+        state: link
+
+- name: Setup neovim
+  block:
+    - name: Check if Nvim config already exists
+      stat:
+        path: "{{ ansible_env.HOME }}/.config/nvim/init.lua"
+      register: nvim_config_stat
+
+    - name: Remove existing .config/nvim/ since no init.lua
+      file:
+        path: "{{ ansible_env.HOME }}/.config/nvim/"
+        state: absent
+      when: not nvim_config_stat.stat.exists
+
+    - name: Clone a basic Nvim config
+      git:
+        repo: 'https://github.com/nvim-lua/kickstart.nvim'
+        dest: "{{ ansible_env.HOME }}/.config/nvim/"
+      when: not nvim_config_stat.stat.exists
+
+- name: Setup Rust
+  block:
+    - name: check if cargo is installed
+      shell: command -v cargo
+      register: cargo_exists
+      ignore_errors: yes
+      tags:
+        - rust
+
+    - name: Download Installer
+      when: cargo_exists is failed
+      get_url:
+        url: https://sh.rustup.rs
+        dest: /tmp/sh.rustup.rs
+        mode: '0755'
+        force: 'yes'
+      tags:
+        - rust
+    - name: install rust/cargo
+      when: cargo_exists is failed
+      shell: /tmp/sh.rustup.rs -y
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/rustc"
+      tags:
+        - rust
+
+- name: Install cmake
+  become: true
+  apt:
+    name: cmake
+    state: present
+  tags: 
+    - rust
+
+- name: Install other stuff
+  become: true
+  apt:
+    pkg:
+      - clang
+      - pkg-config
+      - libssl-dev
+    state: latest
+    update_cache: true
+  tags: 
+    - rust
+
+- name: Setup swapfile
+  become: true
+  command: fallocate -l 1G /swapfile
+  args:
+    creates: /swapfile
+  tags: 
+    - rust
+
+- name: Set swapfile mode to 0600
+  become: true
+  ansible.builtin.file:
+    path: /swapfile
+    mode: '0600'
+  tags: 
+    - rust
+      
+- name: check if rules file exists
+  stat: 
+    path: /swapfile
+  register: swapfile
+
+- name: Create swap space
+  become: true
+  command: mkswap /swapfile
+  tags: 
+    - rust
+  when: swapfile.stat.exists == false
+  register: create_swap
+
+- name: Turn on swap file
+  become: true
+  command: swapon /swapfile
+  when: create_swap.changed
+  tags: 
+    - rust
+
+
+- name: Set swap file in fstab
+  become: true
+  lineinfile:
+    dest: /etc/fstab
+    line: '/swapfile swap swap defaults 0 0'
+  tags: 
+    - rust

@@ -8,6 +8,7 @@
       - libical-dev
       - libreadline-dev
       - docutils-common
+      - sense-hat
     state: present
   tags: ditto_install
 
@@ -90,46 +91,47 @@
   when: bluez.changed
   tags: ditto_bluez
 
-- name: Check if Ditto samples repo already exists
-  stat:
-    path: "{{ ansible_env.HOME }}/ditto_demo"
-  register: ditto_repo_stat
-
-- name: Clone Ditto samples repo if it doesn't exist
+- name: Clone Ditto btle_wifi_proto repo
   git:
-    repo: 'https://github.com/getditto/samples.git'
+    repo: 'https://github.com/kitplummer/btle_wifi_proto.git'
     dest: "{{ ansible_env.HOME }}/ditto_demo"
-  register: ditto_demo
-  when: not ditto_repo_stat.stat.exists
-
-- name: Install NVM and Node.js
-  shell: |
-    wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
-    export NVM_DIR="$HOME/.nvm"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-    nvm install 20.5.1
-    nvm alias default 20.5.1
-    npm install -g typescript@^3.1.6
-    npm install -g pm2
-  when: ditto_demo.changed
-  args:
-    executable: /bin/bash
+    force: true
+  register: ditto_demo_repo
   tags: ditto_install
 
-#- name: Replace Ditto configuration in index.ts
-  #  lineinfile:
-#  path: "{{ ansible_env.HOME }}/ditto_demo/tasks/nodejs/index.ts"
-#    regexp: "ditto = new Ditto\\({ type: 'onlinePlayground', appID: '(.*)', token: '(.*)' }\\)"
-#    line: "ditto = new Ditto({ type: 'onlinePlayground', appID: '{{ DITTO_APP_ID }}', token: '{{ DITTO_TOKEN }}' })"
-  #  when: ditto_demo.changed
-  #tags: ditto_demo
+- name: Run tsc compile
+  shell: |
+    export NVM_DIR="{{ ansible_user_dir }}/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    cd {{ ansible_user_dir }}/ditto_demo
+    npm install 
+    tsc wap.ts
+    tsc sensor.ts
+  when: ditto_demo_repo.changed
+  args:
+    creates: sensor.js
+  tags: ditto_install
 
-#- name: Install and build the demo app
-  #  shell: |
-#  export NVM_DIR="$HOME/.nvm"
-#    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-#    cd {{ ansible_env.HOME }}/ditto_demo/tasks/nodejs/
-#    npm install
-#    npm run build
-  # when: ditto_demo.changed
-  #  tags: ditto_demo
+- name: Place config.js file
+  ansible.builtin.template:
+    src: templates/ditto_demo_config.j2
+    dest: "{{ ansible_user_dir }}/ditto_demo/config.json"
+    mode: '0600'
+  tags: ditto_install 
+
+- name: Start Ditto sensor service if not running
+  pm2:
+    name: ditto_demo
+    chdir: "{{ ansible_user_dir }}/ditto_demo"
+    script: "node sensor.js"
+    state: started
+  tags: ditto_install 
+
+- name: Setup Ditto sensor systemd service
+  become: yes
+  shell: |
+    pm2 startup systemd -u pi --hp /home/pi
+    pm2 save
+  args:
+    creates: /etc/systemd/system/multi-user.target.wants/pm2-pi.service
+  tags: ditto_install 
