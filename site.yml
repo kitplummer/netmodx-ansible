@@ -1,11 +1,34 @@
 ---
-- name: Configure Ditto Rust rPis
+- name: Configure Ditto Rust nodes
   hosts: nmxs
+  environment:
+    BPA_HOST: "{{ lookup('ansible.builtin.env','BPA_HOST') }}"
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+    PATH: "{{ ansible_env.HOME }}/.nvm/versions/node/v20.5.1/bin:{{ ansible_env.PATH }}"
   tasks:
     - import_tasks: roles/core.yml
       tags: core
     - import_tasks: roles/rust.yml
       tags: rust
+    - import_tasks: roles/node.yml
+      tags: node
+    - import_tasks: roles/datagen.yml
+      tags: datagen
+
+- name: Configure Ditto rPi GPS
+  hosts: gps
+  environment:
+    # NA means this is a no-BPA node
+    BPA_HOST: "NA"
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+    PATH: "{{ ansible_env.HOME }}/.nvm/versions/node/v20.5.1/bin:{{ ansible_env.PATH }}"
+  tasks:
+    - import_tasks: roles/core.yml
+      tags: core
+    - import_tasks: roles/node.yml
+      tags: node
+    - import_tasks: roles/ditto.yml
+      tags: ditto 
 
 - name: Configure Ditto rPi Zeros
   hosts: zeros
@@ -17,11 +40,40 @@
     - import_tasks: roles/ditto.yml
       tags: ditto 
 
+- name: Configure data generator node
+  hosts: datagen
+  environment:
+    # NA means this is a no-BPA node
+    BPA_HOST: "NA"
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+    PATH: "{{ ansible_env.HOME }}/.nvm/versions/node/v20.5.1/bin:{{ ansible_env.PATH }}"
+  tasks:
+    - import_tasks: roles/core.yml
+      tags: core
+    - import_tasks: roles/node.yml
+      tags: node
+    - import_tasks: roles/datagen.yml
+      tags: datagen
+
 - name: Configure Ditto NetModX Sensor rPis
   hosts: sensor
   environment:
     NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
     PATH: "{{ ansible_env.HOME }}/.nvm/versions/node/v20.5.1/bin:{{ ansible_env.PATH }}"
+  tasks:
+    - import_tasks: roles/core.yml
+      tags: core
+    - import_tasks: roles/node.yml
+      tags: node
+    - import_tasks: roles/ditto.yml
+      tags: ditto 
+
+- name: Configure Ditto NetModX Sensor rPis with BPA
+  hosts: bpa_sensor
+  environment:
+    NVM_DIR: "{{ ansible_env.HOME }}/.nvm"
+    PATH: "{{ ansible_env.HOME }}/.nvm/versions/node/v20.5.1/bin:{{ ansible_env.PATH }}"
+    BPA_HOST: "{{ lookup('ansible.builtin.env','BPA_HOST') }}"
   tasks:
     - import_tasks: roles/core.yml
       tags: core

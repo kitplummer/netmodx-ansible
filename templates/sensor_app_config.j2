@@ -6,6 +6,7 @@
   "ditto": {
     "app-id": "{{ lookup('ansible.builtin.env', "APP_ID") }}",
     "app-token": "{{ lookup('ansible.builtin.env', "APP_TOKEN") }}",
+    "shared-key": "{{ lookup('ansible.builtin.env', SHARED_KEY"")}",
     "use-cloud": "{{ lookup('ansible.builtin.env', "USE_CLOUD") }}",
     "use-lan": "{{ lookup('ansible.builtin.env', "USE_LAN") }}",
     "use-ble": "{{ lookup('ansible.builtin.env', "USE_BLE") }}",

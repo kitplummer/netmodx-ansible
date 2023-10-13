@@ -4,7 +4,7 @@
   args:
     creates: "{{ ansible_user_dir }}/.nvm/nvm.sh"
     executable: /bin/bash
-  tags: ditto_install
+  tags: node_install
 
 - name: Install Node.js
   shell: |
@@ -14,8 +14,8 @@
     nvm alias default 20.5.1
   args:
     executable: /bin/bash
-    creates: /home/pi/.nvm/versions/node/v20.5.1/bin/node
-  tags: ditto_install
+    creates: "{{ ansible_user_dir }}/.nvm/versions/node/v20.5.1/bin/node"
+  tags: node_install
 
 - name: Install typescript and pm2
   shell: |
@@ -24,5 +24,7 @@
     cd {{ ansible_user_dir }}/ditto_demo
     npm install -g typescript
     npm install -g pm2
-  tags: ditto_install
+  args:
+    creates: "{{ ansible_user_dir }}/.nvm/versions/node/v20.5.1/bin/pm2"
+  tags: node_install
 

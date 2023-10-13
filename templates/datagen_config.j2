@@ -1,6 +1,5 @@
 {
   "log-level": "{{ lookup('ansible.builtin.env', "LOG_LEVEL") }}",
-  "arduino-serial-port": "{{ lookup('ansible.builtin.env', "ARDUINO_SERIAL_PORT") }}",
   "ditto": {
     "app-id": "{{ lookup('ansible.builtin.env', "APP_ID") }}",
     "app-token": "{{ lookup('ansible.builtin.env', "APP_TOKEN") }}",
