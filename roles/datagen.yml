@@ -102,8 +102,9 @@
 - name: Clone Ditto logjammer repo
   git:
     repo: 'https://github.com/getditto/logjammer.git'
-    dest: "{{ ansible_env.HOME }}/ditto_demo"
+    dest: "{{ ansible_env.HOME }}/logjammer"
     force: true
+    version: "{{ ansible_env.BRANCH }}"
   register: ditto_demo_repo
   tags: ditto_install
 
@@ -111,7 +112,7 @@
   shell: |
     export NVM_DIR="{{ ansible_user_dir }}/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-    cd {{ ansible_user_dir }}/ditto_demo
+    cd {{ ansible_user_dir }}/logjammer
     npm install 
     tsc
   when: ditto_demo_repo.changed
@@ -122,23 +123,23 @@
 - name: Place config.js file
   ansible.builtin.template:
     src: templates/datagen_config.j2
-    dest: "{{ ansible_user_dir }}/ditto_demo/config.json"
+    dest: "{{ ansible_user_dir }}/logjammer/config.json"
     mode: '0600'
   register: ditto_demo_config
   tags: ditto_install 
 
 - name: Start Ditto sensor service if not running
   pm2:
-    name: ditto_demo
-    chdir: "{{ ansible_user_dir }}/ditto_demo"
+    name: logjammer
+    chdir: "{{ ansible_user_dir }}/logjammer"
     script: "node index.js"
     state: started
   tags: ditto_install 
 
 - name: Restart Ditto sensor service with change
   pm2:
-    name: ditto_demo
-    chdir: "{{ ansible_user_dir }}/ditto_demo"
+    name: logjammer
+    chdir: "{{ ansible_user_dir }}/logjammer"
     state: restarted
   when: ditto_demo_repo.changed or ditto_demo_config.changed
   tags: ditto_install 
